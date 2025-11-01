@@ -6,7 +6,8 @@ import os
 import webserver
 
 DISCORD_API = os.environ["discordapi"]
-GIPHY_API = os.environ["giphyapi"]
+TENOR_API = os.environ["tenorapi"]
+
 # Bot
 bot = commands.Bot(
     command_prefix="!",
@@ -26,13 +27,11 @@ async def on_ready():
 
 @bot.command()
 async def gif(ctx, *, msg):
-    url = f"https://api.giphy.com/v1/gifs/search?api_key={GIPHY_API}&q={msg}&limit=10"
+    url = f"https://tenor.googleapis.com/v2/search?q={msg}&key={TENOR_API}&client_key=my_test_app&limit=10"
     response = requests.get(url)
-    gifs = response.json()
-    if gifs["data"] == []:
-        await ctx.send(f"No gifs found for {msg}")
-    else:
-        gif_urls = [gif["images"]["original"]["url"] for gif in gifs["data"]]
+    if response.status_code == 200:
+        gifs = response.json()
+        gif_urls = [gif["media_formats"]["gif"]["url"] for gif in gifs["results"]]
         gif_no = 0
         embed = discord.Embed(title=msg)
         embed.set_image(url=gif_urls[gif_no])
@@ -53,6 +52,8 @@ async def gif(ctx, *, msg):
 
         channel = bot.get_channel(1434190691621146735)
         message = await channel.send(embed=embed, view=view)
+    else:
+        await ctx.send(f"No gifs found for {msg}")
 
 
 webserver.keep_alive()
