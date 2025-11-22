@@ -4,10 +4,12 @@ from discord.ext import commands
 import requests
 import os
 import webserver
+from pytube import Playlist, YouTube
 
 DISCORD_API = os.environ["discordapi"]
 TENOR_API = os.environ["tenorapi"]
-DISCORD_CHANNEL = os.evironment["dis_channel"]
+STUDY_CHANNEL = os.evironment["study_channel"]
+GIF_CHANNEL = os.evironment["gif_channel"]
 # Bot
 bot = commands.Bot(
     command_prefix="!",
@@ -50,12 +52,44 @@ async def gif(ctx, *, msg):
         view = View(timeout=None)
         view.add_item(button)
 
-        channel = bot.get_channel(DISCORD_CHANNEL)
+        channel = bot.get_channel(GIF_CHANNEL)
         message = await channel.send(embed=embed, view=view)
     else:
         await ctx.send(f"No gifs found for {msg}")
 
 
+@bot.command()
+async def pl(ctx, url: str, utitle: str):
+    pl_url = "https://youtube.com/playlist?list=PL"
+    yt1_url = "https://www.youtube.com/watch?v"
+    yt2_url = "https://youtu.be/"
+    response = requests.get(url)
+    if response.status_code == 200:
+        if url[:36] == pl_url:
+            playlist = Playlist(url)
+            links = playlist.video_urls
+            c = 1
+            des = ""
+            for link in links:
+                des += f"[Video Number {c}](<{link}>)" + " \n"
+                c += 1
+                if c == len(links):
+                    break
+            des += f"[Video Number {c}](<{links[-1]}>)"
+            embed = discord.Embed(
+                title=utitle,
+                description=des,
+            )
+            channel = bot.get_channel(STUDY_CHANNEL)
+            await channel.send(embed=embed)
+        elif url[:31] == yt1_url or url[:17] == yt2_url:
+            await ctx.send(f"[{utitle}](<{url}>)")
+    else:
+        await ctx.send("Your given link is wrong")
+
+
 webserver.keep_alive()
 bot.run(DISCORD_API)
+
+
 
