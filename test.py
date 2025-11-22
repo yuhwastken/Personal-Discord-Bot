@@ -7,7 +7,7 @@ import webserver
 
 DISCORD_API = os.environ["discordapi"]
 TENOR_API = os.environ["tenorapi"]
-
+DISCORD_CHANNEL = os.evironment["dis_channel"]
 # Bot
 bot = commands.Bot(
     command_prefix="!",
@@ -50,7 +50,7 @@ async def gif(ctx, *, msg):
         view = View(timeout=None)
         view.add_item(button)
 
-        channel = bot.get_channel(1434190691621146735)
+        channel = bot.get_channel(DISCORD_CHANNEL)
         message = await channel.send(embed=embed, view=view)
     else:
         await ctx.send(f"No gifs found for {msg}")
@@ -58,3 +58,4 @@ async def gif(ctx, *, msg):
 
 webserver.keep_alive()
 bot.run(DISCORD_API)
+
